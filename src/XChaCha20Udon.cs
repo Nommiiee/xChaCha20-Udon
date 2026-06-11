@@ -36,8 +36,17 @@ using UdonSharp;
 using UnityEngine;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
+
 public class XChaCha20Udon : UdonSharpBehaviour
+
 {
+    [Header("Inspector Settings")]
+    [SerializeField]
+    private string defaultPassword = "VRChatSecretKey!";
+
+    [SerializeField]
+    [TextArea(3, 8)]
+    private string textToEncrypt = "This is the data string that needs to be encrypted";
     // ═══════════════════════════════════════════════════════════════════════
     //  PUBLIC API
     // ═══════════════════════════════════════════════════════════════════════
@@ -621,15 +630,12 @@ public class XChaCha20Udon : UdonSharpBehaviour
 
     void Start()
     {
-        // Smoke-test: encrypt then decrypt, log result
-        string password = "VRChatSecretKey!";
-        string original = "This is the data string that needs to be encrypted";
-        string encrypted = Encrypt(original, password);
-        string decrypted = Decrypt(encrypted, password);
+        string encrypted = Encrypt(textToEncrypt, defaultPassword);
+        string decrypted = Decrypt(encrypted, defaultPassword);
 
-        Debug.Log("[XChaCha20] Original  : " + original);
+        Debug.Log("[XChaCha20] Original  : " + textToEncrypt);
         Debug.Log("[XChaCha20] Encrypted : " + encrypted);
         Debug.Log("[XChaCha20] Decrypted : " + decrypted);
-        Debug.Log("[XChaCha20] Round-trip OK: " + (original == decrypted));
+        Debug.Log("[XChaCha20] Round-trip OK: " + (textToEncrypt == decrypted));
     }
 }
