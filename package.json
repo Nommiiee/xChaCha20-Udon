@@ -19,7 +19,16 @@
     "unity",
     "xchacha20",
     "chacha20",
-    "encryption"
+    "encryption",
+    "unity3d",
+    "cryptography",
+    "stream-cipher",
+    "security",
+    "base64",
+    "utf8",
+    "csharp",
+    "vr",
+    "game-development"
   ],
   "author": "nommiiee",
   "license": "GPL-3.0-only",

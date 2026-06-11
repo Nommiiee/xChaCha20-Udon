@@ -276,7 +276,7 @@ or another authenticated encryption scheme.
 
 ## License
 
-Licensed under the GNU General Public License v2.0.
+Licensed under the GNU General Public License v3.0.
 
 See the LICENSE file for details.
 
