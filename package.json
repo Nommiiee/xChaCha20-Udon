@@ -1,0 +1,31 @@
+{
+  "name": "xchacha20-udon",
+  "version": "1.0.0",
+  "description": "A cross-platform implementation of **XChaCha20** for **VRChat UdonSharp** and **Node.js**.",
+  "directories": {
+    "source": "src",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node ./test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nommiiee/xChaCha20-Udon.git"
+  },
+  "keywords": [
+    "vrchat",
+    "udonsharp",
+    "unity",
+    "xchacha20",
+    "chacha20",
+    "encryption"
+  ],
+  "author": "nommiiee",
+  "license": "GPL-3.0-only",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Nommiiee/xChaCha20-Udon/issues"
+  },
+  "homepage": "https://github.com/Nommiiee/xChaCha20-Udon#readme"
+}

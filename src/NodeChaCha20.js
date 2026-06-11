@@ -380,23 +380,6 @@ function buildInitialState(key, nonce12, counter) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  QUICK SELF-TEST  (run with:  node xchacha20.js)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-if (typeof require !== "undefined" && require.main === module) {
-  const password = "VRChatSecretKey!";
-  const original = "Hello, XChaCha20 in VRChat! 🎉";
-
-  const encrypted = encrypt(original, password);
-  const decrypted = decrypt(encrypted, password);
-
-  console.log("Original  :", original);
-  console.log("Encrypted :", encrypted);
-  console.log("Decrypted :", decrypted);
-  console.log("Round-trip OK:", original === decrypted);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
 //  EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
