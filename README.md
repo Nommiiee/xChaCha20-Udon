@@ -161,7 +161,7 @@ Node.js
 ### Node.js Round-Trip Test
 
 ```javascript
-const { encrypt, decrypt } = require("./NodeChaCha20");
+const { encrypt, decrypt } = require("./NodeChaCha20"); // Path to file wherever you have stored it in your project.
 
 const password = "VRChatSecretKey!";
 const original = "Hello XChaCha20!";
@@ -178,6 +178,12 @@ if (original !== decrypted) {
 }
 
 console.log("PASS");
+```
+
+You can also run the following command from the root of your github directory as well.
+
+```
+npm run test
 ```
 
 Expected:
