@@ -32,6 +32,7 @@ This project enables encryption and decryption of data between VRChat worlds and
 ```text
 .
 ├── src/XChaCha20Udon.cs
+├── src/XChaCha20UdonStatic.cs
 ├── src/NodeChaCha20.js
 ├── LICENSE
 └── README.md
@@ -65,7 +66,14 @@ This project is a library, not a complete networking solution. It provides compa
 
 ### UdonSharp
 
-Import `XChaCha20Udon.cs` into your Unity project by directly downloading or copying the file.
+Import one or both UdonSharp scripts into your Unity project by directly downloading or copying the files:
+
+| File | Type | Use when |
+| ---- | ---- | -------- |
+| `XChaCha20Udon.cs` | `UdonSharpBehaviour` | You want a component on a GameObject (inspector fields, `Start()` self-test) |
+| `XChaCha20UdonStatic.cs` | Static utility class | You want to call encrypt/decrypt from any script without attaching a behaviour |
+
+Both implementations are wire-format compatible with each other and with Node.js. You only need one for encryption to work; use the static class if you are integrating into an existing UdonSharp script.
 
 ### Node.js
 
@@ -93,22 +101,49 @@ const decrypted = decrypt(encrypted, "VRChatSecretKey!");
 
 ---
 
-## UdonSharp Example
+## UdonSharp Example (Behaviour)
+
+Attach `XChaCha20Udon` to a GameObject, then call its public methods from the same behaviour or via Udon events:
 
 ```csharp
 string password = "VRChatSecretKey!";
 
-string encrypted =
-    Encrypt(
-        "Hello VRChat!",
-        password
-    );
+string encrypted = Encrypt("Hello VRChat!", password);
+string decrypted = Decrypt(encrypted, password);
+```
 
-string decrypted =
-    Decrypt(
-        encrypted,
-        password
-    );
+---
+
+## UdonSharp Example (Static Utility)
+
+Import `XChaCha20UdonStatic.cs` and call the static API from any UdonSharp script — no GameObject or component required:
+
+```csharp
+string password = "VRChatSecretKey!";
+
+string encrypted = XChaCha20UdonStatic.Encrypt("Hello VRChat!", password);
+string decrypted = XChaCha20UdonStatic.Decrypt(encrypted, password);
+```
+
+### Self-test
+
+`XChaCha20UdonStatic` includes a built-in round-trip test. Call it from `Start()`, a UI button, or any Udon event:
+
+```csharp
+// Default test text and password
+XChaCha20UdonStatic.SelfTest();
+
+// Custom values
+XChaCha20UdonStatic.SelfTest("Hello VRChat!", "VRChatSecretKey!");
+```
+
+Expected Unity Console output:
+
+```text
+[XChaCha20] Original  : ...
+[XChaCha20] Encrypted : ...
+[XChaCha20] Decrypted : ...
+[XChaCha20] Round-trip OK: True
 ```
 
 ---
@@ -196,9 +231,11 @@ PASS
 
 ### UdonSharp Round-Trip Test
 
-The included Start() method performs a built-in validation test.
+**Behaviour (`XChaCha20Udon`):** attach the script to a GameObject and enter Play Mode. The included `Start()` method runs automatically.
 
-Expected Unity Console output:
+**Static (`XChaCha20UdonStatic`):** call `XChaCha20UdonStatic.SelfTest()` from your own UdonSharp script (see [UdonSharp Example (Static Utility)](#udonsharp-example-static-utility)).
+
+Expected Unity Console output (both versions):
 
 ```text
 [XChaCha20] Original  : ...
@@ -224,11 +261,11 @@ Copy the output.
 ### Decrypt in UdonSharp
 
 ```csharp
-string decrypted =
-    Decrypt(
-        encryptedString,
-        "SharedPassword"
-    );
+// Static utility
+string decrypted = XChaCha20UdonStatic.Decrypt(encryptedString, "SharedPassword");
+
+// Or, if using the behaviour component on the same script:
+string decrypted = Decrypt(encryptedString, "SharedPassword");
 ```
 
 Expected result:
