@@ -19,4 +19,10 @@ if (typeof require !== "undefined" && require.main === module) {
   }
 
   console.log("PASS");
+  console.log(
+    decrypt(
+      "KlAS6qYkYMwFw9bLuTTCbjeu8+5lmIxQuXUNLM/h921awbZbnK4YkYS/b4eaNpXIOkxjeu8Z/vVdBUBGmOXXfkw2dwphBkCe74Y=",
+      password,
+    ),
+  );
 }

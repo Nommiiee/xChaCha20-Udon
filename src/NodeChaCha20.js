@@ -60,7 +60,7 @@ function decrypt(cipherBase64, password) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  XCHACHA20  —  draft-irtf-cfrg-xchacha §2.3
+//  XCHACHA20  —  draft-irtf-cfrg-xchacha Section 2.3
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function xchacha20Process(data, key, nonce24, initialCounter) {
@@ -76,7 +76,7 @@ function xchacha20Process(data, key, nonce24, initialCounter) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  HCHACHA20  —  draft-irtf-cfrg-xchacha §2.2
+//  HCHACHA20  —  draft-irtf-cfrg-xchacha Section 2.2
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function hchacha20(key, nonce16) {
@@ -107,7 +107,7 @@ function hchacha20(key, nonce16) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  CHACHA20 STREAM CIPHER  —  RFC 8439 §2.4
+//  CHACHA20 STREAM CIPHER  —  RFC 8439 Section 2.4
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function chacha20Process(data, key, nonce12, counter) {
@@ -151,7 +151,7 @@ function chacha20KeystreamBlock(key, nonce12, counter) {
 
   const working = chacha20Core20Rounds(new Uint32Array(state));
 
-  // Add original state back (RFC 8439 §2.3)
+  // Add original state back (RFC 8439 Section 2.3)
   for (let i = 0; i < 16; i++) working[i] = (working[i] + state[i]) >>> 0;
 
   // Serialise → 64 bytes
@@ -176,7 +176,7 @@ function chacha20Core20Rounds(s) {
   return s;
 }
 
-// ─── Quarter-round (RFC 8439 §2.1) ───────────────────────────────────────────
+// ─── Quarter-round (RFC 8439 Section 2.1) ───────────────────────────────────────────
 
 function qr(s, a, b, c, d) {
   s[a] = (s[a] + s[b]) >>> 0;
@@ -287,44 +287,28 @@ function generateNonce() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  BASE64  (RFC 4648 §4 — matches UdonSharp Base64Encode/Base64Decode)
+//  BASE64  (RFC 4648 Section 4 — matches UdonSharp Base64Encode/Base64Decode)
 // ═══════════════════════════════════════════════════════════════════════════════
-
-const B64_CHARS =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
 function base64Encode(bytes) {
-  let out = "";
-  for (let i = 0; i < bytes.length; i += 3) {
-    const b0 = bytes[i],
-      b1 = bytes[i + 1] ?? 0,
-      b2 = bytes[i + 2] ?? 0;
-    out += B64_CHARS[b0 >> 2];
-    out += B64_CHARS[((b0 & 0x03) << 4) | (b1 >> 4)];
-    out += B64_CHARS[((b1 & 0x0f) << 2) | (b2 >> 6)];
-    out += B64_CHARS[b2 & 0x3f];
+  if (typeof Buffer !== "undefined") {
+    // Node.js path — Buffer handles any Uint8Array directly
+    return Buffer.from(bytes).toString("base64");
   }
-  const pad = (3 - (bytes.length % 3)) % 3;
-  return out.slice(0, out.length - pad) + "=".repeat(pad);
+  // Browser path — btoa requires a binary string
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
 }
 
 function base64Decode(s) {
-  s = s.trim().replace(/=+$/, "");
-  const out = new Uint8Array(Math.floor((s.length * 6) / 8));
-  let idx = 0;
-
-  for (let i = 0; i < s.length - 1; i += 4) {
-    const rem = s.length - i;
-    const c0 = B64_CHARS.indexOf(s[i]);
-    const c1 = rem > 1 ? B64_CHARS.indexOf(s[i + 1]) : 0;
-    const c2 = rem > 2 ? B64_CHARS.indexOf(s[i + 2]) : 0;
-    const c3 = rem > 3 ? B64_CHARS.indexOf(s[i + 3]) : 0;
-    if (c0 < 0 || c1 < 0 || c2 < 0 || c3 < 0) return null;
-
-    if (idx < out.length) out[idx++] = (c0 << 2) | (c1 >> 4);
-    if (idx < out.length) out[idx++] = ((c1 & 0x0f) << 4) | (c2 >> 2);
-    if (idx < out.length) out[idx++] = ((c2 & 0x03) << 6) | c3;
+  if (typeof Buffer !== "undefined") {
+    // Node.js path — Buffer.from returns a Buffer (subclass of Uint8Array)
+    return new Uint8Array(Buffer.from(s, "base64"));
   }
+  // Browser path — atob returns a binary string, convert to Uint8Array
+  const bin = atob(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
 }
 

@@ -4,9 +4,9 @@
  * VRChat UdonSharp — XChaCha20 Encryption / Decryption (static utility)
  *
  * RFC compliance
- *   • ChaCha20 core     : RFC 8439 §2.1–§2.3  (quarter-round, block function)
- *   • HChaCha20         : draft-irtf-cfrg-xchacha §2.2
- *   • XChaCha20         : draft-irtf-cfrg-xchacha §2.3
+ *   • ChaCha20 core     : RFC 8439 Section 2.1–Section 2.3  (quarter-round, block function)
+ *   • HChaCha20         : draft-irtf-cfrg-xchacha Section 2.2
+ *   • XChaCha20         : draft-irtf-cfrg-xchacha Section 2.3
  *
  * Constraints (VRChat / Udon)
  *   • Zero use of System.Security.Cryptography
@@ -55,8 +55,9 @@ public static class XChaCha20UdonStatic
         byte[] output = new byte[24 + ctBytes.Length];
         System.Array.Copy(nonce, 0, output, 0, 24);
         System.Array.Copy(ctBytes, 0, output, 24, ctBytes.Length);
+        return System.Convert.ToBase64String(output);
 
-        return Base64Encode(output);
+        // return Base64Encode(output);
     }
 
     /// <summary>
@@ -66,8 +67,11 @@ public static class XChaCha20UdonStatic
     /// </summary>
     public static string Decrypt(string cipherBase64, string password)
     {
-        byte[] raw = Base64Decode(cipherBase64);
-        if (raw == null || raw.Length < 24) return "";
+        // byte[] raw = Base64Decode(cipherBase64);
+        // if (raw == null || raw.Length < 24) return "";
+        if (!IsValidBase64(cipherBase64)) return "";
+        byte[] raw = System.Convert.FromBase64String(cipherBase64);
+        if (raw.Length < 24) return "";
 
         byte[] key = DeriveKey(password);
         byte[] nonce = new byte[24];
@@ -80,8 +84,28 @@ public static class XChaCha20UdonStatic
         return BytesToString(ptBytes);
     }
 
+    private static bool IsValidBase64(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return false;
+        if (s.Length % 4 != 0) return false;   // RFC 4648: length must be multiple of 4
+
+        int padCount = 0;
+        if (s[s.Length - 1] == '=') padCount++;
+        if (s[s.Length - 2] == '=') padCount++;
+        if (padCount > 2) return false;         // max 2 padding chars
+
+        for (int i = 0; i < s.Length - padCount; i++)
+        {
+            char c = s[i];
+            bool ok = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+                   || (c >= '0' && c <= '9') || c == '+' || c == '/';
+            if (!ok) return false;              // any non-Base64 char = reject
+        }
+        return true;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════
-    //  XCHACHA20 — draft-irtf-cfrg-xchacha §2.3
+    //  XCHACHA20 — draft-irtf-cfrg-xchacha Section 2.3
     // ═══════════════════════════════════════════════════════════════════════
     // XChaCha20 allows a 192-bit (24-byte) nonce instead of ChaCha20's 96-bit
     // nonce, eliminating reuse risk when nonces are randomly generated.
@@ -109,12 +133,12 @@ public static class XChaCha20UdonStatic
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    //  HCHACHA20 — draft-irtf-cfrg-xchacha §2.2
+    //  HCHACHA20 — draft-irtf-cfrg-xchacha Section 2.2
     // ═══════════════════════════════════════════════════════════════════════
     // Runs the ChaCha20 core on a special initial state and returns the
     // first and last rows (words 0–3 and 12–15) as the 32-byte subkey.
     //
-    // Initial state layout (RFC 8439 §2.3):
+    // Initial state layout (RFC 8439 Section 2.3):
     //   cccccccc  cccccccc  cccccccc  cccccccc   ← constants
     //   kkkkkkkk  kkkkkkkk  kkkkkkkk  kkkkkkkk   ← key[0..15]
     //   kkkkkkkk  kkkkkkkk  kkkkkkkk  kkkkkkkk   ← key[16..31]
@@ -161,7 +185,7 @@ public static class XChaCha20UdonStatic
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    //  CHACHA20 STREAM CIPHER — RFC 8439 §2.4
+    //  CHACHA20 STREAM CIPHER — RFC 8439 Section 2.4
     // ═══════════════════════════════════════════════════════════════════════
 
     private static byte[] ChaCha20Process(byte[] data, byte[] key, byte[] nonce12,
@@ -185,7 +209,7 @@ public static class XChaCha20UdonStatic
         return output;
     }
 
-    // ─── Single 64-byte keystream block (RFC 8439 §2.3) ──────────────────
+    // ─── Single 64-byte keystream block (RFC 8439 Section 2.3) ──────────────────
 
     private static byte[] ChaCha20KeystreamBlock(byte[] key, byte[] nonce12,
                                           uint counter)
@@ -217,7 +241,7 @@ public static class XChaCha20UdonStatic
         // 20 rounds of mixing
         ChaCha20Block20Rounds(working);
 
-        // Add original state back (RFC 8439 §2.3 — the final add step)
+        // Add original state back (RFC 8439 Section 2.3 — the final add step)
         for (int i = 0; i < 16; i++)
             working[i] += state[i];
 
@@ -230,7 +254,7 @@ public static class XChaCha20UdonStatic
     }
 
     // ─── 20 rounds: 10 column rounds + 10 diagonal rounds ────────────────
-    // RFC 8439 §2.1 defines the quarter-round; §2.3 defines the round schedule.
+    // RFC 8439 Section 2.1 defines the quarter-round; Section 2.3 defines the round schedule.
 
     private static void ChaCha20Block20Rounds(uint[] s)
     {
@@ -249,7 +273,7 @@ public static class XChaCha20UdonStatic
         }
     }
 
-    // ─── ChaCha20 quarter-round (RFC 8439 §2.1) ──────────────────────────
+    // ─── ChaCha20 quarter-round (RFC 8439 Section 2.1) ──────────────────────────
 
     private static void QR(uint[] s, int a, int b, int c, int d)
     {
@@ -394,7 +418,7 @@ public static class XChaCha20UdonStatic
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    //  BASE64 ENCODE / DECODE  (RFC 4648 §4, standard alphabet)
+    //  BASE64 ENCODE / DECODE  (RFC 4648 Section 4, standard alphabet)
     // ═══════════════════════════════════════════════════════════════════════
     // Implemented from scratch — System.Convert is not available in Udon.
 
